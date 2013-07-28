@@ -105,7 +105,7 @@ class ArticleExtractor(object):
                                     item.text,
                                     item.attrs['href']
                                 )
-                        if item.name == 'img' or item.find('img'):
+                        elif item.name == 'img' or item.find('img'):
                             pass
                         else:
                             text += item.text
