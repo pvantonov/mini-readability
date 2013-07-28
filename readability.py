@@ -29,9 +29,10 @@ def main():
     args = parser.parse_args()
     try:
         file_manager = FileManager(args.path)
-        if not file_manager.article_exists(args.url) or args.update:
+        article_exists = file_manager.article_exists(args.url)
+        if not article_exists or args.update:
             article = ArticleExtractor.extract_article(args.url)
-            if not args.update:
+            if not article_exists:
                 file_manager.add_article(args.url, article.get_text())
             else:
                 file_manager.update_article(args.url, article.get_text())

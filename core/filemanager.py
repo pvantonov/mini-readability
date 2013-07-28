@@ -105,11 +105,8 @@ class FileManager(object):
         Обновить статью в БД.
         """
         article = self.session.query(Article).get(Article.make_pk(url))
-        if article:
-            article.article = text
-            self.session.commit()
-        else:
-            self.add_article(url, text)
+        article.article = text
+        self.session.commit()
 
     def _construct_filename(self, url):
         u"""
