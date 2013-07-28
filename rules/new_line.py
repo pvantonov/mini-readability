@@ -22,4 +22,4 @@ class NewLineRule(Rule):
         часть основной статьи.
         """
         ratio = paragraph.text.count('\n') / float(len(paragraph.text) or 1)
-        return -100 * ratio
+        return -75 * ratio

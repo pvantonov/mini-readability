@@ -21,7 +21,7 @@ class TagClassRule(Rule):
         if 'class' in paragraph.parent.attrs:
             for class_ in paragraph.parent.attrs['class']:
                 if 'story' in class_:
-                    estimate += 2
+                    estimate += 3
                 elif 'article' in class_:
                     estimate += 5
                 else:
