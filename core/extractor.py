@@ -1,9 +1,15 @@
 # coding=utf-8
 from bisect import insort
 import urllib2
+from urllib2 import HTTPError
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from core.article import Article
+
+
+class ExtractError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
 
 
 class ArticleExtractor(object):
@@ -27,7 +33,14 @@ class ArticleExtractor(object):
         u"""
         Выделить из HTML страницы по указанному URL текст основной статьи.
         """
-        data = urllib2.urlopen(url)
+        try:
+            data = urllib2.urlopen(url)
+        except HTTPError as error:
+            msg = (u'Невозможно прочитать содержимое по заданному URL адресу. '
+                   u'Убедитесь, что URL адрес указан правильно и ваш '
+                   u'компьютер подключен к сети Internet.\n'
+                   u'Код ошибки: %s %s' % (error.code, error.msg))
+            raise ExtractError(msg=msg)
         soup = BeautifulSoup(data.read())
 
         # Удаляем весь JavaScript из текста страницы.
