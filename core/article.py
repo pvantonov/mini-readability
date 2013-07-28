@@ -1,5 +1,5 @@
 # coding=utf-8
-import codecs
+import os
 
 
 class Article(object):
@@ -22,7 +22,7 @@ class Article(object):
         current_line_length = 0
         for item in text:
             if current_line_length + len(item) > 80:
-                text_with_line_breaks += '\n%s ' % item
+                text_with_line_breaks += '%s%s ' % (os.linesep, item)
                 current_line_length = len(item) + 1
             else:
                 text_with_line_breaks += '%s ' % item
@@ -48,12 +48,12 @@ class Article(object):
     def add_image(self, image):
         self.images.append(image)
 
-    def save(self, filename):
+    def get_text(self):
         u"""
-        Сохранить статью в файл.
+        Получить текстовое представление статьи.
         """
-        with codecs.open(filename, mode="w", encoding="utf-8") as f:
-            f.write(self.title)
-            for paragraph in self.paragraphs:
-                f.write('\n\n' + paragraph)
+        text = self.title
+        for paragraph in self.paragraphs:
+            text += os.linesep*2 + paragraph
+        return text
 
