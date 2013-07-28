@@ -1,5 +1,6 @@
 # coding=utf-8
 from bisect import insort
+import re
 import urllib2
 from urllib2 import HTTPError
 from bs4 import BeautifulSoup
@@ -46,6 +47,12 @@ class ArticleExtractor(object):
         # Удаляем весь JavaScript из текста страницы.
         for script in soup.find_all('script'):
             script.extract()
+
+        for footer in soup.find_all(class_=re.compile('footer')):
+            footer.extract()
+
+        for footer in soup.find_all(class_=re.compile('comment')):
+            footer.extract()
 
         # Разные верстальщики по разному располагают заголовок статьи.
         # Кто-то в h1, кто-то в h2. Вообще, по-хорошему, должно быть в h1.
