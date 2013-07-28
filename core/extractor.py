@@ -3,6 +3,7 @@ from bisect import insort
 import re
 import urllib2
 from urllib2 import HTTPError
+from urlparse import urlparse, urlunparse
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 from core.article import Article
@@ -48,11 +49,12 @@ class ArticleExtractor(object):
         for script in soup.find_all('script'):
             script.extract()
 
-        for footer in soup.find_all(class_=re.compile('footer')):
-            footer.extract()
+        for keyword in ['footer', 'comment', 'login', 'alert']:
+            for block in soup.find_all(class_=re.compile(keyword)):
+                block.extract()
 
-        for footer in soup.find_all(class_=re.compile('comment')):
-            footer.extract()
+            for block in soup.select('[id*=%s]' % keyword):
+                block.extract()
 
         # Разные верстальщики по разному располагают заголовок статьи.
         # Кто-то в h1, кто-то в h2. Вообще, по-хорошему, должно быть в h1.
@@ -85,10 +87,24 @@ class ArticleExtractor(object):
                         text += item
                     elif isinstance(item, Tag):
                         if item.name == 'a' and 'href' in item.attrs:
-                            text += u'%s [%s]' % (
-                                item.text,
-                                item.attrs['href']
-                            )
+                            # Если url начинается с "/" добавляем в
+                            # его начало адрес сайта.
+                            if item.attrs['href'].startswith('/'):
+                                url_scheme = urlparse(url)
+                                main_url = urlunparse((
+                                    url_scheme.scheme,
+                                    url_scheme.netloc,
+                                    '', '', '', ''
+                                ))
+                                text += u'%s [%s]' % (
+                                    item.text,
+                                    main_url + item.attrs['href']
+                                )
+                            else:
+                                text += u'%s [%s]' % (
+                                    item.text,
+                                    item.attrs['href']
+                                )
                         else:
                             text += item.text
                     else:

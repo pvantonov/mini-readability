@@ -25,10 +25,13 @@ class SentenceCountRule(Rule):
         sentence_count = paragraph.text.count('. ')
         sentence_count += paragraph.text.count('! ')
         sentence_count += paragraph.text.count('? ')
-        if paragraph.text.endswith('.'):
+        sentence_count += paragraph.text.count('."')
+        sentence_count += paragraph.text.count('!"')
+        sentence_count += paragraph.text.count('?"')
+        if paragraph.text.endswith('.') or paragraph.text.endswith('."'):
             sentence_count += 1
-        elif paragraph.text.endswith('?'):
+        elif paragraph.text.endswith('?') or paragraph.text.endswith('?"'):
             sentence_count += 1
-        elif paragraph.text.endswith('!'):
+        elif paragraph.text.endswith('!') or paragraph.text.endswith('!"'):
             sentence_count += 1
         return -500 if not sentence_count else sentence_count

@@ -69,7 +69,7 @@ class FileManager(object):
         если база существует, либо создается новая база, если базы не
         существует.
         """
-        if not (os.path.exists(path) and os.path.isdir(path)):
+        if path and not (os.path.exists(path) and os.path.isdir(path)):
             raise FileManagementError(
                 msg=u'Указанный путь не существует или является путем к файлу.'
             )
