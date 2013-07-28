@@ -67,13 +67,13 @@ class ArticleExtractor(object):
             title_is_found = False
             for header in soup.find_all(header_tag):
                 if header.text.strip('\n') in soup.title.text:
-                    article.title = header.text.strip('\n')
+                    article.set_title(header.text.strip('\n'))
                     title_is_found = True
                     break
             if title_is_found:
                 break
         else:
-            article.title = soup.find('h1').text.strip('\n')
+            article.set_title(soup.find('h1').text.strip('\n'))
 
         # Перебираем все теги p. Если параграф оценивается как часть статьи -
         # он преобразуется в текст: все теги кроме a игнорируются, если тег
@@ -105,6 +105,8 @@ class ArticleExtractor(object):
                                     item.text,
                                     item.attrs['href']
                                 )
+                        if item.name == 'img' or item.find('img'):
+                            pass
                         else:
                             text += item.text
                     else:

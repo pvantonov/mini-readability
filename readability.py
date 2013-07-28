@@ -2,6 +2,7 @@
 import argparse
 from core.extractor import ArticleExtractor, ExtractError
 from core.filemanager import FileManager, FileManagementError
+from rules.mail_rule import MailRule
 from rules.tag_class import TagClassRule
 from rules.link_paragraph import LinkParagraphRule
 from rules.new_line import NewLineRule
@@ -50,4 +51,5 @@ if __name__ == '__main__':
     ArticleExtractor.register_rule(NewLineRule())
     ArticleExtractor.register_rule(LinkParagraphRule())
     ArticleExtractor.register_rule(TagClassRule())
+    ArticleExtractor.register_rule(MailRule())
     main()

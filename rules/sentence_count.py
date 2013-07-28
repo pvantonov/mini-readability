@@ -22,16 +22,17 @@ class SentenceCountRule(Rule):
         общее число символов, которые могут быть символом конца предложения в
         независимости от того, где в предложении находятся данные знаки.
         """
-        sentence_count = paragraph.text.count('. ')
-        sentence_count += paragraph.text.count('! ')
-        sentence_count += paragraph.text.count('? ')
-        sentence_count += paragraph.text.count('."')
-        sentence_count += paragraph.text.count('!"')
-        sentence_count += paragraph.text.count('?"')
-        if paragraph.text.endswith('.') or paragraph.text.endswith('."'):
+        text = paragraph.text.strip()
+        sentence_count = text.count('. ')
+        sentence_count += text.count('! ')
+        sentence_count += text.count('? ')
+        sentence_count += text.count('."')
+        sentence_count += text.count('!"')
+        sentence_count += text.count('?"')
+        if text.endswith('.') or text.endswith('."'):
             sentence_count += 1
-        elif paragraph.text.endswith('?') or paragraph.text.endswith('?"'):
+        elif text.endswith('?') or text.endswith('?"'):
             sentence_count += 1
-        elif paragraph.text.endswith('!') or paragraph.text.endswith('!"'):
+        elif text.endswith('!') or text.endswith('!"'):
             sentence_count += 1
         return -500 if not sentence_count else sentence_count
