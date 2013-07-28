@@ -4,6 +4,7 @@ import hashlib
 import os
 from sqlalchemy import Column, String
 from sqlalchemy.engine import create_engine
+from sqlalchemy.exc import DatabaseError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.sql import exists
@@ -35,6 +36,25 @@ class Article(Base):
         return hashlib.md5(url).hexdigest()
 
 
+class FileManagementError(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+
+def db_error_wrapper(func):
+    def wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+        except DatabaseError:
+            raise FileManagementError(
+                msg=(u'Хранилище данных повреждено. Если ошибка будет '
+                     u'повторяться - удалите вручную файл readability.sqlite')
+            )
+        else:
+            return result
+    return wrapper
+
+
 class FileManager(object):
     u"""
     Менеджер, управляющий хранением файлов на диске и в базе данных.
@@ -47,8 +67,13 @@ class FileManager(object):
         Это либо явно заданный каталог, либо домашняя директория пользователя.
         Происходит либо соединение с SQLite базой данных в указанном каталоге,
         если база существует, либо создается новая база, если базы не
-        существует или она повреждена.
+        существует.
         """
+        if not (os.path.exists(path) and os.path.isdir(path)):
+            raise FileManagementError(
+                msg=u'Указанный путь не существует или является путем к файлу.'
+            )
+
         self.path = path or os.path.expanduser('~')
         self.bdpath = os.path.join(self.path, 'readability.sqlite')
         self.bdengine = create_engine('sqlite:///' + self.bdpath)
@@ -58,6 +83,7 @@ class FileManager(object):
         if not os.path.exists(self.bdpath):
             Base.metadata.create_all(self.bdengine)
 
+    @db_error_wrapper
     def article_exists(self, url):
         u"""
         Проверить, хранится ли статья по указанному URL в базе данных.
@@ -65,6 +91,7 @@ class FileManager(object):
         pk = Article.make_pk(url)
         return self.session.query(exists().where(Article.pk == pk)).scalar()
 
+    @db_error_wrapper
     def add_article(self, url, text):
         u"""
         Добавить статью в БД.
@@ -72,13 +99,17 @@ class FileManager(object):
         self.session.add(Article(url, text))
         self.session.commit()
 
+    @db_error_wrapper
     def update_article(self, url, text):
         u"""
         Обновить статью в БД.
         """
         article = self.session.query(Article).get(Article.make_pk(url))
-        article.article = text
-        self.session.commit()
+        if article:
+            article.article = text
+            self.session.commit()
+        else:
+            self.add_article(url, text)
 
     def _construct_filename(self, url):
         u"""
@@ -93,6 +124,7 @@ class FileManager(object):
         filename += '.txt'
         return filename
 
+    @db_error_wrapper
     def unpack_article(self, url):
         u"""
         Извлечь статью из БД и сохранить ее на диск.

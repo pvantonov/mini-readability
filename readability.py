@@ -1,7 +1,7 @@
 # coding=utf-8
 import argparse
-from core.extractor import ArticleExtractor
-from core.filemanager import FileManager
+from core.extractor import ArticleExtractor, ExtractError
+from core.filemanager import FileManager, FileManagementError
 from rules.new_line import NewLineRule
 from rules.paragraph_count import ParagraphCountRule
 from rules.sentence_count import SentenceCountRule
@@ -27,14 +27,19 @@ def main():
     )
 
     args = parser.parse_args()
-    file_manager = FileManager()
-    if not file_manager.article_exists(args.url) or args.update:
-        article = ArticleExtractor.extract_article(args.url)
-        if not args.update:
-            file_manager.add_article(args.url, article.get_text())
-        else:
-            file_manager.update_article(args.url, article.get_text())
-    file_manager.unpack_article(args.url)
+    try:
+        file_manager = FileManager(args.path)
+        if not file_manager.article_exists(args.url) or args.update:
+            article = ArticleExtractor.extract_article(args.url)
+            if not args.update:
+                file_manager.add_article(args.url, article.get_text())
+            else:
+                file_manager.update_article(args.url, article.get_text())
+        file_manager.unpack_article(args.url)
+    except ExtractError as error:
+        print error.msg
+    except FileManagementError as error:
+        print error.msg
 
 if __name__ == '__main__':
     ArticleExtractor.register_rule(ParagraphCountRule())
