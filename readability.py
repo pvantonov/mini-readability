@@ -2,6 +2,8 @@
 import argparse
 from core.extractor import ArticleExtractor, ExtractError
 from core.filemanager import FileManager, FileManagementError
+from rules.tag_class import TagClassRule
+from rules.link_paragraph import LinkParagraphRule
 from rules.new_line import NewLineRule
 from rules.paragraph_count import ParagraphCountRule
 from rules.sentence_count import SentenceCountRule
@@ -46,4 +48,6 @@ if __name__ == '__main__':
     ArticleExtractor.register_rule(ParagraphCountRule())
     ArticleExtractor.register_rule(SentenceCountRule())
     ArticleExtractor.register_rule(NewLineRule())
+    ArticleExtractor.register_rule(LinkParagraphRule())
+    ArticleExtractor.register_rule(TagClassRule())
     main()
