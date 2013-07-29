@@ -39,7 +39,10 @@ def main():
                 file_manager.add_article(args.url, article.get_text())
             else:
                 file_manager.update_article(args.url, article.get_text())
+            for image, name in article.get_images():
+                file_manager.add_image(args.url, image, name)
         file_manager.unpack_article(args.url)
+        file_manager.unpack_images(args.url)
     except ExtractError as error:
         print error.msg
     except FileManagementError as error:

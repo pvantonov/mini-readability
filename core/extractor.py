@@ -1,6 +1,7 @@
 # coding=utf-8
 from bisect import insort
 import re
+import urllib
 import urllib2
 from urllib2 import HTTPError
 from urlparse import urlparse, urlunparse
@@ -74,6 +75,18 @@ class ArticleExtractor(object):
                 break
         else:
             article.set_title(soup.find('h1').text.strip('\n'))
+
+        # Гланую картинку достаем из данных Open Graph Protocol
+        for image in soup.find_all('meta', property='og:image'):
+            try:
+                url = image.attrs['content']
+                name = url.rsplit('/')[-1]
+                image = open(urllib.urlretrieve(url)[0], 'rb').read()
+            except ValueError:
+                pass
+            else:
+                article.set_main_image(image, name, url)
+                break
 
         # Перебираем все теги p. Если параграф оценивается как часть статьи -
         # он преобразуется в текст: все теги кроме a игнорируются, если тег
