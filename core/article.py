@@ -11,6 +11,7 @@ class Article(object):
         self.paragraphs = []
         self.images = []
         self.title = u''
+        self.main_image = None
 
     def _insert_line_breaks(self, text):
         u"""
@@ -37,6 +38,9 @@ class Article(object):
         """
         self.title = self._insert_line_breaks(title)
 
+    def set_main_image(self, image, name, url):
+        self.main_image = (image, name, url)
+
     def add_paragraph(self, paragraph):
         u"""
         Добавить абзац к статье. При необходимости в абзац вставляются
@@ -48,11 +52,22 @@ class Article(object):
     def add_image(self, image):
         self.images.append(image)
 
+    def get_images(self):
+        u"""
+        Получить все картинки, относящиеся к статье
+        """
+        images = [(self.main_image[0], self.main_image[1])]
+        return images
+
     def get_text(self):
         u"""
         Получить текстовое представление статьи.
         """
         text = self.title
+
+        if self.main_image:
+            text += os.linesep*2 + '[%s]' % self.main_image[2]
+
         for paragraph in self.paragraphs:
             text += os.linesep*2 + paragraph
         return text
