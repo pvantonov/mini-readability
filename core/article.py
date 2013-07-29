@@ -49,14 +49,15 @@ class Article(object):
         """
         self.paragraphs.append(self._insert_line_breaks(paragraph))
 
-    def add_image(self, image):
-        self.images.append(image)
+    def add_image(self, image, name):
+        self.images.append((image, name))
 
     def get_images(self):
         u"""
         Получить все картинки, относящиеся к статье
         """
         images = [(self.main_image[0], self.main_image[1])]
+        images.extend(self.images)
         return images
 
     def get_text(self):
