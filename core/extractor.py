@@ -1,5 +1,6 @@
 # coding=utf-8
 from bisect import insort
+import os
 import re
 import urllib
 import urllib2
@@ -36,6 +37,11 @@ class ArticleExtractor(object):
         u"""
         Выделить из HTML страницы по указанному URL текст основной статьи.
         """
+        # Основной url сайта понадобится для восстановления неполных ссылок
+        url_scheme = urlparse(url)
+        main_url = urlunparse((url_scheme.scheme, url_scheme.netloc,
+                               '', '', '', ''))
+
         try:
             data = urllib2.urlopen(url)
         except HTTPError as error:
@@ -79,13 +85,15 @@ class ArticleExtractor(object):
         # Гланую картинку достаем из данных Open Graph Protocol
         for image in soup.find_all('meta', property='og:image'):
             try:
-                url = image.attrs['content']
-                name = url.rsplit('/')[-1]
-                image = open(urllib.urlretrieve(url)[0], 'rb').read()
+                image_url = image.attrs['content']
+                if image_url.startswith('/'):
+                    image_url = main_url + image_url
+                name = urlparse(image_url)[2].rsplit('/')[-1]
+                image = open(urllib.urlretrieve(image_url)[0], 'rb').read()
             except ValueError:
                 pass
             else:
-                article.set_main_image(image, name, url)
+                article.set_main_image(image, name, image_url)
                 break
 
         # Перебираем все теги p. Если параграф оценивается как часть статьи -
@@ -103,12 +111,6 @@ class ArticleExtractor(object):
                             # Если url начинается с "/" добавляем в
                             # его начало адрес сайта.
                             if item.attrs['href'].startswith('/'):
-                                url_scheme = urlparse(url)
-                                main_url = urlunparse((
-                                    url_scheme.scheme,
-                                    url_scheme.netloc,
-                                    '', '', '', ''
-                                ))
                                 text += u'%s [%s]' % (
                                     item.text,
                                     main_url + item.attrs['href']
@@ -124,6 +126,23 @@ class ArticleExtractor(object):
                             text += item.text
                     else:
                         pass
+                sibling = paragraph.nextSibling
+                if isinstance(sibling, Tag) and sibling.name in ['p',
+                                                                 'div',
+                                                                 'span']:
+                    images = (sibling.select('img') or
+                              sibling.select('figure > img') or
+                              sibling.select('span > img'))
+                    if images:
+                        for image in images:
+                            image_url = image.attrs['src']
+                            if image_url.startswith('/'):
+                                image_url = main_url + image_url
+                            name = urlparse(image_url)[2].rsplit('/')[-1]
+                            image = open(
+                                urllib.urlretrieve(image_url)[0], 'rb').read()
+                            text += os.linesep * 2 + '[%s]' % image_url
+                            article.add_image(image, name)
                 article.add_paragraph(text)
 
         return article
